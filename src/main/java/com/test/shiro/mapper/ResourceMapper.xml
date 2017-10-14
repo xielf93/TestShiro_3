@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.test.shiro.mapper.ResourceMapper" >
+
+  <resultMap id="BaseResultMap" type="com.test.shiro.pojo.Resource" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="url" property="url" jdbcType="VARCHAR" />
+    <result column="parent_id" property="parentId" jdbcType="BIGINT" />
+    <result column="level" property="level" jdbcType="VARCHAR" />
+    <result column="permission" property="permission" jdbcType="VARCHAR" />
+    <result column="available" property="available" jdbcType="BIT" />
+  </resultMap>
+  <resultMap type="com.test.shiro.pojo.Resource" id="ChildResultMap" extends="BaseResultMap">
+  	<collection property="children" column="id" ofType="com.test.shiro.pojo.Resource" select="selectChildById">
+  	</collection>
+  </resultMap>
+  <resultMap type="com.test.shiro.pojo.Resource" id="ChildMenu" extends="BaseResultMap">
+  	<collection property="children" column="id" ofType="com.test.shiro.pojo.Resource" select="selectChildMenu"></collection>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, type, url, parent_id, level, permission, available
+  </sql>
+  <sql id="Lazy_Column_List">
+  	re.id, re.name, re.type, re.url, re.parent_id, re.level, re.permission, re.available
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="ChildResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from sys_resource
+    where id = #{id,jdbcType=BIGINT} 
+  </select>
+  <select id="selectChildById" resultMap="ChildResultMap">
+  	select
+  	<include refid="Base_Column_List" />
+  	from sys_resource
+  	where parent_id = #{id}
+  </select>
+  <select id="selectAllMenu" resultMap="ChildMenu">
+  	select 
+    <include refid="Base_Column_List" />
+    from sys_resource where parent_id is null
+  </select>
+  <select id="selectChildMenu" resultMap="ChildMenu">
+  	select
+  	<include refid="Base_Column_List" />
+  	from sys_resource
+  	where parent_id = #{id} and type = 'menu'
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+  	select 
+    <include refid="Base_Column_List" />
+    from sys_resource 
+  </select>
+  <select id="selectAllTree" resultMap="ChildResultMap">
+  	select 
+  	<include refid="Base_Column_List" />
+  	from sys_resource
+  	where parent_id is null
+  </select>
+  <select id="selectCanMove" resultMap="BaseResultMap">
+  	select 
+  	<include refid="Base_Column_List" />
+  	from sys_resource
+  	<if test="list != null">
+  		where id not in
+	  	<foreach collection="list" item="r" open="(" close=")" separator=",">
+	  		#{r.id}
+	  	</foreach>
+  	</if>
+  </select>
+  <select id="selectResourceByUserIdLazy" parameterType="int" resultMap="ChildMenu" >
+  	select 
+    <include refid="Lazy_Column_List" />
+    from sys_resource re,sys_role_resource rr,sys_user_role ur
+    where re.id=rr.resource_id and rr.role_id = ur.role_id and
+    ur.user_id = #{user_id} and re.available = 1;
+  </select>
+  <select id="selectResourceByRoleIdLazy" parameterType="int" resultMap="BaseResultMap">
+  	select
+  	<include refid="Lazy_Column_List" />
+  	from sys_resource re,sys_role_resource rr
+  	where re.id = rr.resource_id and rr.role_id = #{role_id}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from sys_resource
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insertSelective" parameterType="com.test.shiro.pojo.Resource" >
+    insert into sys_resource
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="url != null" >
+        url,
+      </if>
+      <if test="parentId != null" >
+        parent_id,
+      </if>
+      <if test="level != null" >
+        level,
+      </if>
+      <if test="permission != null" >
+        permission,
+      </if>
+      <if test="available != null" >
+        available,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null" >
+        #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="parentId != null" >
+        #{parentId,jdbcType=BIGINT},
+      </if>
+      <if test="level != null" >
+        #{level,jdbcType=VARCHAR},
+      </if>
+      <if test="permission != null" >
+        #{permission,jdbcType=VARCHAR},
+      </if>
+      <if test="available != null" >
+        #{available,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.test.shiro.pojo.Resource" >
+    update sys_resource
+    <set >
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="url != null" >
+        url = #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="parentId != null" >
+        parent_id = #{parentId,jdbcType=BIGINT},
+      </if>
+      <if test="level != null" >
+        parent_ids = #{level,jdbcType=VARCHAR},
+      </if>
+      <if test="permission != null" >
+        permission = #{permission,jdbcType=VARCHAR},
+      </if>
+      <if test="available != null" >
+        available = #{available,jdbcType=BIT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

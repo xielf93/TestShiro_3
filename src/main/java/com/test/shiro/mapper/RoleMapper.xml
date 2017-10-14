@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.test.shiro.mapper.RoleMapper" >
+
+  <resultMap id="BaseResultMap" type="com.test.shiro.pojo.Role" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="role" property="role" jdbcType="VARCHAR" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="available" property="available" jdbcType="BIT" />
+  </resultMap>
+  <resultMap type="com.test.shiro.pojo.Role" id="LazyResultMap" extends="BaseResultMap">
+  	<collection property="userSet" ofType="com.test.shiro.pojo.User" column="id" select="com.test.shiro.mapper.UserMapper.selectUserLazy">
+    </collection>
+    <collection property="resourceSet" ofType="com.test.shiro.pojo.Rsource" column="id" select="com.test.shiro.mapper.ResourceMapper.selectResourceByRoleIdLazy">
+    </collection>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, role, description, available
+  </sql>
+  <sql id="Lazy_Column_List">
+  	r.id, r.role, r.description, r.available
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from sys_role
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectRoleLazy" parameterType="int" resultMap="BaseResultMap">
+  	select 
+  	<include refid="Lazy_Column_List" />
+  	from sys_role r,sys_user_role ur
+  	where r.id=ur.role_id and ur.user_id = #{userId} and r.available=1
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+  	select 
+    <include refid="Base_Column_List" />
+    from sys_role
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from sys_role
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insertSelective" parameterType="com.test.shiro.pojo.Role" >
+    insert into sys_role
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="role != null" >
+        role,
+      </if>
+      <if test="description != null" >
+        description,
+      </if>
+      <if test="available != null" >
+        available,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="role != null" >
+        #{role,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null" >
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="available != null" >
+        #{available,jdbcType=BIT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.test.shiro.pojo.Role" >
+    update sys_role
+    <set >
+      <if test="role != null" >
+        role = #{role,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null" >
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="available != null" >
+        available = #{available,jdbcType=BIT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

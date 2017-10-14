@@ -1,0 +1,13 @@
+package com.test.shiro.process;
+
+import com.test.shiro.pojo.LeaveApply;
+
+
+
+rule "checkGeneralManagerAudit"
+    when
+        $leave: LeaveApply();
+    then
+        System.out.println("leave====" + $leave);
+        $leave.setGeneralManagerAudit($leave.getDay() > 3);
+end
